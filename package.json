@@ -1,0 +1,14 @@
+{
+  "name": "fultons-quiz",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mobile-first puzzle quiz prototype prepared for Docker and GitHub deployment.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

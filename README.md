@@ -26,16 +26,22 @@ docker compose up -d --build
 
 Open `http://127.0.0.1:8080`.
 
-## Link to GitHub
+## GitHub repository
 
-Create a new GitHub repository, then run these commands from this folder:
+This prototype is linked to:
+
+```text
+https://github.com/Steveystyles/fultons-quiz
+```
+
+If you install Git locally later, you can connect this folder to the remote with:
 
 ```bash
 git init
 git add .
 git commit -m "Initial Fulton's Quiz prototype"
 git branch -M main
-git remote add origin https://github.com/YOUR_USER/fultons-quiz.git
+git remote add origin https://github.com/Steveystyles/fultons-quiz.git
 git push -u origin main
 ```
 

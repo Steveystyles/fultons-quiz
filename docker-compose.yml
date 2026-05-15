@@ -1,0 +1,21 @@
+services:
+  app:
+    build: .
+    container_name: fultonsquiz-app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    expose:
+      - "3000"
+
+  nginx:
+    image: nginx:alpine
+    container_name: fultonsquiz-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro

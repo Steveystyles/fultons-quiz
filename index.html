@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fulton's Quiz</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#play" aria-label="Fulton's Quiz home">
+      <span class="brand-mark">FQ</span>
+      <span>Fulton's Quiz</span>
+    </a>
+    <div class="deploy-state">
+      <span class="status-dot" aria-hidden="true"></span>
+      Docker-ready prototype
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="device-zone" aria-label="Quiz prototype">
+      <div class="phone-shell">
+        <div class="phone-bezel">
+          <div class="phone-status" aria-hidden="true">
+            <span>10:41</span>
+            <span class="status-icons">5G 92%</span>
+          </div>
+
+          <div class="app-screen">
+            <section class="screen active" data-screen="play" aria-labelledby="play-title">
+              <div class="screen-header">
+                <div>
+                  <p class="screen-kicker">Puzzle hub</p>
+                  <h1 id="play-title">Choose a Puzzle</h1>
+                </div>
+                <button class="icon-button" id="reset-session" type="button" title="Reset session" aria-label="Reset session">
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 6v6h6M20 18v-6h-6" />
+                    <path d="M5 11a7 7 0 0 1 12-4l3 3M19 13a7 7 0 0 1-12 4l-3-3" />
+                  </svg>
+                </button>
+              </div>
+
+              <div class="summary-row" aria-label="Current progress">
+                <div>
+                  <span class="metric-value" id="points-total">0</span>
+                  <span class="metric-label">Points</span>
+                </div>
+                <div>
+                  <span class="metric-value" id="streak-total">0</span>
+                  <span class="metric-label">Streak</span>
+                </div>
+                <div>
+                  <span class="metric-value" id="accuracy-total">0%</span>
+                  <span class="metric-label">Accuracy</span>
+                </div>
+              </div>
+
+              <div class="puzzle-menu" id="puzzle-menu" aria-label="Puzzle list"></div>
+              <section class="puzzle-stage" id="puzzle-stage" aria-live="polite"></section>
+            </section>
+
+            <section class="screen" data-screen="stats" aria-labelledby="stats-title">
+              <div class="screen-header">
+                <div>
+                  <p class="screen-kicker">Session stats</p>
+                  <h1 id="stats-title">Scoreboard</h1>
+                </div>
+              </div>
+              <div class="stats-grid" id="stats-grid"></div>
+              <div class="history-list" id="history-list" aria-label="Recent answers"></div>
+            </section>
+
+            <section class="screen" data-screen="deploy" aria-labelledby="deploy-title">
+              <div class="screen-header">
+                <div>
+                  <p class="screen-kicker">Self-host path</p>
+                  <h1 id="deploy-title">Deploy Checklist</h1>
+                </div>
+              </div>
+              <ol class="deploy-list">
+                <li>
+                  <span>01</span>
+                  <div>
+                    <strong>Prepare Ubuntu</strong>
+                    <p>Update packages, enable UFW, and allow OpenSSH plus Nginx Full.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>02</span>
+                  <div>
+                    <strong>Run Docker Compose</strong>
+                    <p>Build the app container and proxy traffic through Nginx.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>03</span>
+                  <div>
+                    <strong>Connect GitHub</strong>
+                    <p>Push this project, add server secrets, and use the deploy workflow.</p>
+                  </div>
+                </li>
+                <li>
+                  <span>04</span>
+                  <div>
+                    <strong>Enable HTTPS</strong>
+                    <p>Use Certbot on the server for fultonsquiz.com and www.</p>
+                  </div>
+                </li>
+              </ol>
+            </section>
+          </div>
+
+          <nav class="tabbar" aria-label="Main navigation">
+            <button class="tab active" type="button" data-screen-target="play" aria-label="Play">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1z" />
+              </svg>
+              <span>Play</span>
+            </button>
+            <button class="tab" type="button" data-screen-target="stats" aria-label="Stats">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 19V9M12 19V5M19 19v-8" />
+              </svg>
+              <span>Stats</span>
+            </button>
+            <button class="tab" type="button" data-screen-target="deploy" aria-label="Deploy">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v10" />
+                <path d="m8 9 4 4 4-4" />
+                <path d="M5 15v4h14v-4" />
+              </svg>
+              <span>Deploy</span>
+            </button>
+          </nav>
+        </div>
+      </div>
+    </section>
+
+    <aside class="ops-panel" aria-label="Prototype architecture">
+      <section class="panel-section">
+        <h2>Tech Stack</h2>
+        <ul class="stack-list">
+          <li><span class="stack-icon html">5</span><strong>Vanilla HTML, CSS, JS</strong><small>Single-page app modules</small></li>
+          <li><span class="stack-icon node">N</span><strong>Node static server</strong><small>No install step required locally</small></li>
+          <li><span class="stack-icon docker">D</span><strong>Docker Compose</strong><small>App plus Nginx reverse proxy</small></li>
+          <li><span class="stack-icon github">GH</span><strong>GitHub workflow</strong><small>Ready for server secrets</small></li>
+        </ul>
+      </section>
+
+      <section class="panel-section">
+        <h2>Request Flow</h2>
+        <div class="flow-line">
+          <span>Browser</span>
+          <strong>HTTPS</strong>
+          <span>Nginx</span>
+          <strong>proxy</strong>
+          <span>App</span>
+        </div>
+        <p class="panel-copy">The Docker setup mirrors the tutorial: Nginx receives traffic and forwards requests to the quiz app container on port 3000.</p>
+      </section>
+
+      <section class="panel-section command-panel">
+        <h2>Useful Commands</h2>
+        <code>node server.js</code>
+        <code>docker compose up -d --build</code>
+        <code>docker compose logs -f app</code>
+      </section>
+    </aside>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
