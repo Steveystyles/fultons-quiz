@@ -1,18 +1,26 @@
-import createWordScramble from './puzzles/word-scramble.js';
+import createWordGrid from './puzzles/word-grid.js';
 import createMathPuzzle from './puzzles/math-puzzle.js';
 import createTrivia from './puzzles/trivia.js';
 import createPatternMatch from './puzzles/pattern-match.js';
 
 const STORAGE_KEY = 'fultons-quiz-session-v1';
+const AUTH_STORAGE_KEY = 'fultons-quiz-auth-token';
+
+const auth = {
+  token: localStorage.getItem(AUTH_STORAGE_KEY) || '',
+  user: null,
+  wordleStats: null,
+  loading: true
+};
 
 const puzzleTypes = [
   {
-    id: 'word',
-    title: 'Word Scramble',
-    description: 'Unscramble deployment-themed words.',
+    id: 'wordle',
+    title: 'Word Grid',
+    description: 'Guess the five-letter word.',
     accent: '#9b65ff',
     icon: 'W',
-    create: createWordScramble
+    create: createWordGrid
   },
   {
     id: 'math',
@@ -51,8 +59,28 @@ const elements = {
   accuracy: document.querySelector('#accuracy-total'),
   statsGrid: document.querySelector('#stats-grid'),
   history: document.querySelector('#history-list'),
-  reset: document.querySelector('#reset-session')
+  reset: document.querySelector('#reset-session'),
+  authPanel: document.querySelector('#auth-panel'),
+  userPill: document.querySelector('#user-pill')
 };
+
+async function api(path, options = {}) {
+  const headers = {
+    Accept: 'application/json',
+    ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+    ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
+    ...options.headers
+  };
+
+  const response = await fetch(path, { ...options, headers });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Request failed.');
+  }
+
+  return data;
+}
 
 function createDefaultState() {
   return {
@@ -128,6 +156,8 @@ function renderPuzzle() {
   elements.stage.style.setProperty('--accent', puzzle.accent);
   elements.stage.append(puzzle.create({
     accent: puzzle.accent,
+    api,
+    auth,
     onComplete: (result) => handlePuzzleResult(puzzle, result)
   }));
 }
@@ -168,12 +198,19 @@ function renderSummary() {
 function renderStats() {
   elements.statsGrid.innerHTML = '';
 
-  [
+  const stats = [
     ['Points', state.points],
     ['Correct', state.correct],
     ['Attempts', state.attempts],
     ['Accuracy', `${getAccuracy()}%`]
-  ].forEach(([label, value]) => {
+  ];
+
+  if (auth.wordleStats) {
+    stats.push(['Words Found', `${auth.wordleStats.summary.found}/${auth.wordleStats.summary.played}`]);
+    stats.push(['Avg Guesses', auth.wordleStats.summary.averageGuesses || '-']);
+  }
+
+  stats.forEach(([label, value]) => {
     const card = document.createElement('article');
     card.className = 'stat-card';
     card.innerHTML = `<span>${label}</span><strong>${value}</strong>`;
@@ -200,7 +237,64 @@ function renderStats() {
   });
 }
 
+function renderAuthPanel(message = '') {
+  elements.userPill.textContent = auth.user ? `Signed in as ${auth.user.name}` : 'Sign in for saved words';
+
+  if (auth.loading) {
+    elements.authPanel.innerHTML = '<p class="panel-copy">Checking saved sign-in...</p>';
+    return;
+  }
+
+  if (auth.user) {
+    const stats = auth.wordleStats?.summary;
+    elements.authPanel.innerHTML = `
+      <div class="auth-signed-in">
+        <div>
+          <strong>${auth.user.name}</strong>
+          <small>${stats ? `${stats.found}/${stats.played} words found, ${stats.winRate}% win rate` : 'Word stats ready'}</small>
+        </div>
+        <button class="ghost-button compact" type="button" data-auth-action="logout">Sign out</button>
+      </div>
+      ${message ? `<p class="feedback good">${message}</p>` : ''}
+    `;
+    elements.authPanel.querySelector('[data-auth-action="logout"]').addEventListener('click', signOut);
+    return;
+  }
+
+  elements.authPanel.innerHTML = `
+    <form class="auth-form" data-auth-form>
+      <input type="text" name="name" autocomplete="username" placeholder="Name" aria-label="Player name">
+      <input type="password" name="password" autocomplete="current-password" placeholder="Password" aria-label="Password">
+      <button class="primary-button" type="submit">Sign in</button>
+    </form>
+    <p class="panel-copy">${message || 'Use a name and password to create or reopen your saved Word Grid stats.'}</p>
+  `;
+
+  elements.authPanel.querySelector('[data-auth-form]').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+
+    try {
+      const result = await api('/api/auth', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: form.get('name'),
+          password: form.get('password')
+        })
+      });
+      auth.token = result.token;
+      auth.user = result.user;
+      auth.wordleStats = result.wordleStats;
+      localStorage.setItem(AUTH_STORAGE_KEY, auth.token);
+      renderAll();
+    } catch (error) {
+      renderAuthPanel(error.message);
+    }
+  });
+}
+
 function renderAll(options = {}) {
+  renderAuthPanel();
   renderSummary();
   renderMenu();
   renderStats();
@@ -241,4 +335,39 @@ elements.reset.addEventListener('click', () => {
   renderAll();
 });
 
+async function signOut() {
+  try {
+    await api('/api/auth/logout', { method: 'POST' });
+  } catch {
+    // Local sign-out should still clear stale tokens.
+  }
+
+  auth.token = '';
+  auth.user = null;
+  auth.wordleStats = null;
+  localStorage.removeItem(AUTH_STORAGE_KEY);
+  renderAll();
+}
+
+async function initializeAuth() {
+  if (!auth.token) {
+    auth.loading = false;
+    renderAll();
+    return;
+  }
+
+  try {
+    const result = await api('/api/me');
+    auth.user = result.user;
+    auth.wordleStats = result.wordleStats;
+  } catch {
+    auth.token = '';
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+  } finally {
+    auth.loading = false;
+    renderAll();
+  }
+}
+
 renderAll();
+initializeAuth();

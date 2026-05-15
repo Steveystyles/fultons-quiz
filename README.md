@@ -4,7 +4,9 @@ Mobile-first puzzle quiz prototype based on the supplied tutorial and architectu
 
 ## What is included
 
-- Single-page quiz app with Word Scramble, Math Puzzle, Trivia, and Pattern Match views.
+- Single-page quiz app with Word Grid, Math Puzzle, Trivia, and Pattern Match views.
+- Name/password sign-in for server-side Word Grid progress.
+- SQLite-backed Word Grid answer history, found count, and guess totals.
 - Local scoreboard stored in `localStorage`.
 - Dependency-free Node static server with `/api/health`.
 - Docker Compose setup with an app container behind Nginx.
@@ -25,6 +27,8 @@ docker compose up -d --build
 ```
 
 Open `http://127.0.0.1:8080`.
+
+The Docker setup stores the quiz database in the `quiz-data` volume at `/app/data`.
 
 ## GitHub repository
 
